@@ -75,5 +75,53 @@ RSpec.describe BowlingGame do
       12.times { game.roll(10) } # 12 strikes
       expect(game.score).to eq(300) # 10 strikes * 30 points
     end
+    
+    context 'tenth frame special rules' do
+      it 'gives a bonus roll after a spare in the tenth frame' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame spare + bonus
+        game.roll(5)
+        game.roll(5) # Spare in 10th frame
+        game.roll(8) # Bonus roll
+        expect(game.score).to eq(18) # 0 for first 9 frames + 10 + 8 for the tenth
+      end
+      
+      it 'gives two bonus rolls after a strike in the tenth frame' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame strike + 2 bonuses
+        game.roll(10) # Strike in 10th frame
+        game.roll(8)  # Bonus roll 1
+        game.roll(7)  # Bonus roll 2
+        expect(game.score).to eq(25) # 0 for first 9 frames + 10 + 8 + 7 for the tenth
+      end
+      
+      it 'computes the score correctly with multiple strikes at the end' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame - all strikes
+        game.roll(10) # Strike in 10th frame
+        game.roll(10) # Bonus roll 1 (strike)
+        game.roll(10) # Bonus roll 2 (strike)
+        expect(game.score).to eq(30) # 0 for first 9 frames + 10 + 10 + 10 for the tenth
+      end
+      
+      it 'does not allow more than 3 rolls in the tenth frame' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) 
+        18.times { game.roll(1) }
+        # Tenth frame with strike + 2 bonuses
+        game.roll(10)
+        game.roll(10)
+        game.roll(10)
+        # This roll should not be counted
+        game.roll(10)
+        expect(game.score).to eq(48) # 18 for first 9 frames + 30 for the tenth
+      end
+    end
   end
 end
