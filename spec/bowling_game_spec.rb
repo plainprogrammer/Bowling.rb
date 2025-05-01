@@ -64,5 +64,26 @@ RSpec.describe BowlingGame do
       12.times { game.roll(0) }
       expect(game.score).to eq(81)
     end
+
+    it 'handles a spare in the last frame' do
+      18.times { game.roll(0) }
+      game.roll(5)
+      game.roll(5) # spare in 10th frame
+      game.roll(8) # bonus roll
+      expect(game.score).to eq(18)
+    end
+
+    it 'handles a strike in the last frame' do
+      18.times { game.roll(0) }
+      game.roll(10) # strike in 10th frame
+      game.roll(7)  # bonus roll 1
+      game.roll(2)  # bonus roll 2
+      expect(game.score).to eq(19)
+    end
+
+    it 'handles a perfect game (all strikes)' do
+      12.times { game.roll(10) }
+      expect(game.score).to eq(300)
+    end
   end
 end
