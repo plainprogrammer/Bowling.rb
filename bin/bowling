@@ -1,0 +1,124 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative '../lib/bowling'
+
+class BowlingCli
+  def initialize
+    @game = BowlingGame.new
+    @rolls_this_frame = []
+    @frame = 1
+  end
+
+  def run
+    puts "Welcome to the Bowling Score Calculator!"
+
+    while @frame <= BowlingGame::FRAMES
+      puts "\n--- Frame #{@frame} ---"
+      process_frame
+      puts "Score after frame #{@frame}: #{@game.score}"
+      @frame += 1
+      @rolls_this_frame = [] # Reset for next frame
+    end
+
+    puts "\nGame Over! Final Score: #{@game.score}"
+  rescue ArgumentError => e
+    puts "\nError: #{e.message}"
+    exit 1
+  rescue Interrupt
+    puts "\nExiting game."
+    exit 0
+  end
+
+  private
+
+  def process_frame
+    if @frame < BowlingGame::FRAMES
+      process_standard_frame
+    else
+      process_tenth_frame
+    end
+  end
+
+  def process_standard_frame
+    # First roll
+    pins1 = get_roll_input(1)
+    @game.roll(pins1)
+    @rolls_this_frame << pins1
+
+    # Second roll (unless strike)
+    return if pins1 == BowlingGame::MAX_PINS
+
+    pins2 = get_roll_input(2, pins1)
+    @game.roll(pins2)
+    @rolls_this_frame << pins2
+  end
+
+  def process_tenth_frame
+    # First roll
+    pins1 = get_roll_input(1)
+    @game.roll(pins1)
+    @rolls_this_frame << pins1
+
+    # Second roll
+    # Max pins for second roll depends on first roll (if not strike)
+    max_pins2 = (pins1 == BowlingGame::MAX_PINS) ? BowlingGame::MAX_PINS : BowlingGame::MAX_PINS - pins1
+    pins2 = get_roll_input(2, 0, max_pins2) # Pass 0 as previous_pins, max_pins2 for validation
+    @game.roll(pins2)
+    @rolls_this_frame << pins2
+
+    # Third roll (if strike or spare)
+    if pins1 == BowlingGame::MAX_PINS || (pins1 + pins2) == BowlingGame::MAX_PINS
+      # Max pins for third roll depends on previous rolls
+      max_pins3 = BowlingGame::MAX_PINS
+      if pins1 == BowlingGame::MAX_PINS && pins2 != BowlingGame::MAX_PINS
+        # Strike followed by non-strike
+        max_pins3 = BowlingGame::MAX_PINS - pins2
+      end
+      # If first two were not strikes, max is 10 - pins2
+      # If first was strike, second was strike, max is 10
+      # If first two were spare, max is 10
+
+      pins3 = get_roll_input(3, 0, max_pins3) # Pass 0 as previous_pins, max_pins3 for validation
+      @game.roll(pins3)
+      @rolls_this_frame << pins3
+    end
+  end
+
+  def get_roll_input(roll_number, previous_pins = 0, max_allowable = BowlingGame::MAX_PINS)
+    loop do
+      print "Enter pins for roll ##{roll_number}: "
+      input = gets.chomp
+      begin
+        pins = Integer(input)
+        validate_frame_pins(pins, previous_pins, max_allowable)
+        return pins
+      rescue ArgumentError => e
+        puts "Invalid input: #{e.message}. Please try again."
+      end
+    end
+  end
+
+  # Validates individual roll and frame total constraints
+  def validate_frame_pins(pins, previous_pins, max_allowable)
+    # Individual roll validation (0 to MAX_PINS)
+    raise ArgumentError, "Pins must be a non-negative integer" unless pins >= 0
+    raise ArgumentError, "Cannot knock down more than #{BowlingGame::MAX_PINS} pins in a single roll" if pins > BowlingGame::MAX_PINS
+
+    # Check against max allowable for *this specific roll* (used in 10th frame)
+    raise ArgumentError, "Cannot knock down more than #{max_allowable} pins this roll" if pins > max_allowable
+
+    # Frame total validation (only if it's the second roll of a standard frame)
+    # Not applied on first roll, strikes, or 10th frame rolls (handled by max_allowable)
+    if @rolls_this_frame.size == 1 && @frame < BowlingGame::FRAMES && previous_pins < BowlingGame::MAX_PINS
+      if previous_pins + pins > BowlingGame::MAX_PINS
+        raise ArgumentError, "Frame total cannot exceed #{BowlingGame::MAX_PINS} pins (was #{previous_pins} + #{pins})"
+      end
+    end
+  end
+end
+
+# Run the CLI if the script is executed directly
+if __FILE__ == $PROGRAM_NAME
+  BowlingCli.new.run
+end
