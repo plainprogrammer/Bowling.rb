@@ -1,0 +1,141 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/bowling"
+
+class BowlingGame
+  def initialize
+    @bowling = Bowling.new
+    @game_over = false
+  end
+
+  def play
+    puts "Welcome to the Bowling Score Calculator!"
+    puts "---------------------------------------"
+    
+    until @game_over
+      current_frame = @bowling.current_frame
+      
+      if current_frame > 10
+        @game_over = true
+        puts "\nGame over! Final score: #{@bowling.score}"
+        break
+      end
+      
+      puts "\nFrame #{current_frame}"
+      
+      begin
+        if current_frame < 10
+          handle_regular_frame(current_frame)
+        else
+          handle_final_frame
+        end
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        # Continue the game - the user can try again
+      end
+    end
+  end
+
+  private
+  
+  def handle_regular_frame(frame)
+    # First roll
+    pins = prompt_for_roll(1)
+    @bowling.roll(pins)
+    
+    # Check if strike
+    if pins == 10
+      puts "Strike!"
+      show_frame_score(frame)
+      return
+    end
+    
+    # Second roll
+    pins = prompt_for_roll(2)
+    @bowling.roll(pins)
+    
+    # Check if spare
+    if @bowling.frame_score_at(frame) == 10
+      puts "Spare!"
+    end
+    
+    show_frame_score(frame)
+  end
+  
+  def handle_final_frame
+    # First roll
+    pins = prompt_for_roll(1)
+    @bowling.roll(pins)
+    first_roll = pins
+    
+    # Strike in first roll
+    if first_roll == 10
+      puts "Strike!"
+      
+      # Second roll (bonus)
+      pins = prompt_for_roll(2)
+      @bowling.roll(pins)
+      second_roll = pins
+      
+      # Strike in second roll
+      if second_roll == 10
+        puts "Strike!"
+      end
+      
+      # Third roll (bonus)
+      pins = prompt_for_roll(3)
+      @bowling.roll(pins)
+      
+      # Strike in third roll
+      if pins == 10
+        puts "Strike!"
+      end
+    else
+      # Second roll
+      pins = prompt_for_roll(2)
+      @bowling.roll(pins)
+      second_roll = pins
+      
+      # Spare in first and second roll
+      if first_roll + second_roll == 10
+        puts "Spare!"
+        
+        # Third roll (bonus)
+        pins = prompt_for_roll(3)
+        @bowling.roll(pins)
+        
+        # Strike in third roll
+        if pins == 10
+          puts "Strike!"
+        end
+      end
+    end
+    
+    @game_over = true
+    puts "\nGame over! Final score: #{@bowling.score}"
+  end
+  
+  def show_frame_score(frame)
+    puts "Frame #{frame} score: #{@bowling.frame_score_at(frame)}"
+    puts "Running total: #{@bowling.score}"
+  end
+  
+  def prompt_for_roll(roll_number)
+    print "Roll ##{roll_number}: Enter pins knocked down (0-10): "
+    input = gets.chomp
+    
+    until input =~ /^\d+$/ && input.to_i >= 0 && input.to_i <= 10
+      print "Invalid input. Please enter a number between 0 and 10: "
+      input = gets.chomp
+    end
+    
+    input.to_i
+  end
+end
+
+# Start the game when the script is run
+if __FILE__ == $PROGRAM_NAME
+  game = BowlingGame.new
+  game.play
+end
