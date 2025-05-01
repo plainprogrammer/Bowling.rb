@@ -16,6 +16,20 @@ RSpec.describe BowlingGame do
     it 'raises an error for pins greater than 10' do
       expect { game.roll(11) }.to raise_error(ArgumentError, /Invalid number of pins/)
     end
+    
+    it 'raises an error when the sum of pins in a frame exceeds 10' do
+      game.roll(5)
+      expect { game.roll(6) }.to raise_error(ArgumentError, /total pins in a frame cannot exceed 10/)
+    end
+    
+    it 'allows the sum of pins in the 10th frame to exceed 10 if the first roll is a strike' do
+      9.times do
+        game.roll(10) # 9 strikes
+      end
+      game.roll(10) # 10th frame strike
+      expect { game.roll(10) }.not_to raise_error # Bonus roll 1
+      expect { game.roll(10) }.not_to raise_error # Bonus roll 2
+    end
   end
 
   describe '#score' do

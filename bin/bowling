@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/bowling_game'
+
+# Create a new bowling game
+game = BowlingGame.new
+
+# Function to handle user input and validate
+def get_roll_input(max_pins, message = "Enter number of pins knocked down: ")
+  while true
+    begin
+      print message
+      pins = gets.chomp.to_i
+      
+      if pins < 0 || pins > max_pins
+        raise ArgumentError, "Invalid input: #{pins}. Must be between 0 and #{max_pins}."
+      end
+      
+      return pins
+    rescue ArgumentError => e
+      puts "Error: #{e.message} Please try again."
+    end
+  end
+end
+
+puts "Welcome to the Bowling Score Calculator!"
+puts "========================================"
+puts
+
+frame_scores = []
+
+# Main game loop for 10 frames
+10.times do |frame|
+  frame_num = frame + 1
+  puts "\nFrame #{frame_num}"
+  puts "---------"
+  
+  # First roll
+  first_roll = get_roll_input(10)
+  game.roll(first_roll)
+  
+  # Check for strike
+  if first_roll == 10
+    puts "Strike!"
+    # Calculate running score if possible
+    if frame >= 1
+      running_score = game.score
+      frame_scores << running_score
+      puts "Running score: #{running_score}"
+    end
+    next unless frame == 9 # Only continue if it's the 10th frame
+  end
+  
+  # Second roll (always done in 10th frame or if not a strike)
+  remaining_pins = first_roll == 10 ? 10 : 10 - first_roll
+  message = "Enter number of pins knocked down for second roll: "
+  second_roll = get_roll_input(remaining_pins, message)
+  game.roll(second_roll)
+  
+  # Check for spare
+  if first_roll + second_roll == 10 && first_roll != 10
+    puts "Spare!"
+  end
+  
+  # Calculate running score
+  running_score = game.score
+  frame_scores << running_score
+  puts "Running score: #{running_score}"
+  
+  # Handle the bonus roll for the 10th frame
+  if frame == 9 && (first_roll == 10 || first_roll + second_roll == 10)
+    puts "\nBonus roll for 10th frame:"
+    # We can always knock down up to 10 pins for the bonus roll
+    max_pins = 10
+    message = "Enter number of pins knocked down for bonus roll: "
+    bonus_roll = get_roll_input(max_pins, message)
+    game.roll(bonus_roll)
+    
+    if bonus_roll == 10
+      puts "Strike!"
+    end
+    
+    # Final score
+    final_score = game.score
+    puts "\nFinal score: #{final_score}"
+  end
+end
+
+# Print final score if not already shown (when last frame is not a spare or strike)
+if !(frame_scores.last == game.score)
+  puts "\nFinal score: #{game.score}"
+end
+
+# Print frame-by-frame scores
+puts "\nFrame-by-frame scores:"
+puts "---------------------"
+frame_scores.each_with_index do |score, index|
+  puts "Frame #{index + 1}: #{score}"
+end
+
+puts "\nThanks for playing!"
