@@ -26,5 +26,31 @@ RSpec.describe BowlingGame do
       20.times { game.roll(1) } # 10 frames * 2 rolls
       expect(game.score).to eq(20)
     end
+    
+    it 'calculates the score with a spare' do
+      game = BowlingGame.new
+      game.roll(5)
+      game.roll(5) # Spare
+      game.roll(3)
+      game.roll(0)
+      expect(game.score).to eq(16) # 10 + 3 + 3
+    end
+    
+    it 'calculates the score with multiple spares' do
+      game = BowlingGame.new
+      game.roll(5)
+      game.roll(5) # Spare
+      game.roll(3)
+      game.roll(7) # Spare
+      game.roll(4)
+      game.roll(0)
+      expect(game.score).to eq(31) # (10 + 3) + (10 + 4) + 4
+    end
+    
+    it 'calculates the score for a game of all spares with 5 pins each roll' do
+      game = BowlingGame.new
+      21.times { game.roll(5) } # 10 frames with all spares + last bonus roll
+      expect(game.score).to eq(150) # (10 + 5) * 10 frames
+    end
   end
 end
