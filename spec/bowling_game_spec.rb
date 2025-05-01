@@ -122,6 +122,110 @@ RSpec.describe BowlingGame do
         game.roll(10)
         expect(game.score).to eq(48) # 18 for first 9 frames + 30 for the tenth
       end
+      
+      it 'correctly handles a spare in the first two rolls of the tenth frame' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame spare + bonus
+        game.roll(5)
+        game.roll(5) # Spare in 10th frame
+        game.roll(8) # Bonus roll
+        expect(game.score).to eq(18) # 0 for first 9 frames + 10 + 8 for the tenth
+      end
+      
+      it 'correctly calculates score when a strike is made on the second roll of the tenth frame' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame with first roll and then a strike + bonus
+        game.roll(0)
+        game.roll(10) # Strike in second roll of 10th frame
+        game.roll(8)  # Bonus roll
+        expect(game.score).to eq(18) # 0 for first 9 frames + 10 + 8 for the tenth
+      end
+      
+      it 'handles a partial tenth frame with a strike on first roll' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame with only one strike
+        game.roll(10) # Strike in 10th frame
+        # No additional rolls - should calculate correctly with available rolls
+        expect(game.score).to eq(10) # 0 for first 9 frames + 10 for the tenth (no bonus)
+      end
+      
+      it 'handles a partial tenth frame with a spare' do
+        game = BowlingGame.new
+        # Roll 9 frames (18 rolls) of 0
+        18.times { game.roll(0) }
+        # Tenth frame with spare only
+        game.roll(5)
+        game.roll(5) # Spare in 10th frame
+        # No additional rolls - should calculate correctly with available rolls
+        expect(game.score).to eq(10) # 0 for first 9 frames + 10 for the tenth (no bonus)
+      end
+      
+      it 'correctly calculates a complex tenth frame with strikes in different positions' do
+        game = BowlingGame.new
+        # Roll 9 frames with all strikes
+        9.times { game.roll(10) }
+        # Tenth frame with 3 strikes
+        game.roll(10) # First roll of 10th frame (strike)
+        game.roll(10) # Second roll (bonus)
+        game.roll(10) # Third roll (bonus)
+        expect(game.score).to eq(300) # Perfect game
+        
+        # Test another scenario with strikes
+        game2 = BowlingGame.new
+        # Roll 9 frames with all 0s
+        18.times { game2.roll(0) }
+        # Complex 10th frame with strike pattern
+        game2.roll(10) # First roll
+        game2.roll(5)  # Second roll (bonus)
+        game2.roll(3)  # Third roll (bonus)
+        expect(game2.score).to eq(18) # 0 + 10 + 5 + 3
+      end
+      
+      it 'handles the case of a non-strike first roll followed by a strike in the tenth frame' do
+        game = BowlingGame.new
+        # Roll 9 frames with all 0s
+        18.times { game.roll(0) }
+        # Tenth frame with a non-strike followed by a strike
+        game.roll(5)   # First roll 
+        game.roll(10)  # Second roll (strike)
+        # This should not add a bonus roll since this isn't a spare or starting with strike
+        game.roll(5)   # This roll should be ignored
+        expect(game.score).to eq(15) # 0 + 5 + 10
+      end
+      
+      it 'correctly limits rolls for different tenth frame scenarios' do
+        # Scenario 1: Strike on first roll of tenth frame
+        game1 = BowlingGame.new
+        18.times { game1.roll(0) }
+        game1.roll(10) # Strike on first roll of tenth frame
+        game1.roll(3)  # First bonus roll
+        game1.roll(4)  # Second bonus roll
+        game1.roll(5)  # This should be ignored (exceeds max rolls)
+        expect(game1.score).to eq(17) # 10 + 3 + 4
+        
+        # Scenario 2: Spare in tenth frame
+        game2 = BowlingGame.new
+        18.times { game2.roll(0) }
+        game2.roll(6)  # First roll
+        game2.roll(4)  # Second roll (spare)
+        game2.roll(7)  # Bonus roll
+        game2.roll(8)  # This should be ignored (exceeds max rolls)
+        expect(game2.score).to eq(17) # 6 + 4 + 7
+        
+        # Scenario 3: Open frame in tenth frame
+        game3 = BowlingGame.new
+        18.times { game3.roll(0) }
+        game3.roll(3)  # First roll
+        game3.roll(4)  # Second roll (no spare)
+        game3.roll(5)  # This should be ignored (exceeds max rolls)
+        expect(game3.score).to eq(7) # 3 + 4
+      end
     end
     
     context 'input validation' do
