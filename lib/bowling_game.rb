@@ -13,7 +13,14 @@ class BowlingGame
   end
 
   def score
-    # We'll implement this later
-    0
+    total_score = 0
+    roll_index = 0
+
+    10.times do
+      total_score += @rolls[roll_index].to_i + @rolls[roll_index + 1].to_i
+      roll_index += 2
+    end
+
+    total_score
   end
 end
