@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/bowling_game'
+
+class BowlingCLI
+  def initialize
+    @game = BowlingGame.new
+    @current_frame = 1
+    @roll_in_frame = 1
+    @pins_in_frame = 0
+    @total_rolls = 0
+    @game_complete = false
+  end
+  
+  def start
+    puts "Welcome to the Bowling Score Calculator!"
+    puts "-------------------------------------"
+    
+    until @game_complete
+      handle_roll
+      show_score if frame_complete?
+      advance_frame if frame_complete?
+    end
+    
+    show_final_score
+  end
+  
+  private
+  
+  def handle_roll
+    remaining_pins = 10 - @pins_in_frame
+    
+    puts "\nFrame #{@current_frame}, Roll #{@roll_in_frame}"
+    
+    if @roll_in_frame == 2
+      puts "#{remaining_pins} pins left"
+    end
+    
+    pins = get_valid_pins(remaining_pins)
+    
+    begin
+      @game.roll(pins)
+      @pins_in_frame += pins
+      @total_rolls += 1
+      
+      if @current_frame == 10
+        handle_tenth_frame_special_rules(pins)
+      else
+        @roll_in_frame += 1 if pins < 10
+      end
+    rescue BowlingGame::InvalidPinsError => e
+      puts "Error: #{e.message}"
+      # Re-prompt for the roll
+      retry
+    end
+  end
+  
+  def handle_tenth_frame_special_rules(pins)
+    if @roll_in_frame == 1
+      if pins == 10 # Strike
+        @roll_in_frame += 1
+        @pins_in_frame = 0
+      else
+        @roll_in_frame += 1
+      end
+    elsif @roll_in_frame == 2
+      if @pins_in_frame == 10 # Spare or strike then any value
+        @roll_in_frame += 1
+        @pins_in_frame = 0
+      elsif @pins_in_frame < 10 # Open frame
+        @game_complete = true
+      end
+    elsif @roll_in_frame == 3
+      @game_complete = true
+    end
+  end
+  
+  def frame_complete?
+    return @game_complete if @current_frame == 10
+    @pins_in_frame == 10 || @roll_in_frame > 2
+  end
+  
+  def advance_frame
+    @current_frame += 1
+    @roll_in_frame = 1
+    @pins_in_frame = 0
+  end
+  
+  def show_score
+    puts "Score after frame #{@current_frame}: #{@game.score}"
+  end
+  
+  def show_final_score
+    puts "\nGame complete!"
+    puts "Final score: #{@game.score}"
+  end
+  
+  def get_valid_pins(max_pins)
+    loop do
+      print "Enter pins knocked down (0-#{max_pins}): "
+      input = gets.chomp
+      
+      if input =~ /^\d+$/ && input.to_i >= 0 && input.to_i <= max_pins
+        return input.to_i
+      else
+        puts "Invalid input! Please enter a number between 0 and #{max_pins}."
+      end
+    end
+  end
+end
+
+# Start the game with error handling
+begin
+  BowlingCLI.new.start
+rescue StandardError => e
+  puts "An error occurred: #{e.message}"
+  puts e.backtrace if ENV['DEBUG']
+  exit(1)
+end
