@@ -16,11 +16,22 @@ class BowlingGame
     total_score = 0
     roll_index = 0
 
-    10.times do
-      total_score += @rolls[roll_index].to_i + @rolls[roll_index + 1].to_i
-      roll_index += 2
+    10.times do |frame|
+      if spare?(roll_index)
+        total_score += 10 + @rolls[roll_index + 2].to_i
+        roll_index += 2
+      else
+        total_score += @rolls[roll_index].to_i + @rolls[roll_index + 1].to_i
+        roll_index += 2
+      end
     end
 
     total_score
+  end
+
+  private
+
+  def spare?(roll_index)
+    @rolls[roll_index].to_i + @rolls[roll_index + 1].to_i == 10
   end
 end

@@ -28,5 +28,23 @@ RSpec.describe BowlingGame do
       20.times { game.roll(1) }
       expect(game.score).to eq(20)
     end
+
+    it 'correctly scores a spare followed by a 3' do
+      game.roll(5)
+      game.roll(5) # spare
+      game.roll(3)
+      17.times { game.roll(0) }
+      expect(game.score).to eq(16)
+    end
+
+    it 'correctly scores multiple spares' do
+      game.roll(5)
+      game.roll(5) # spare
+      game.roll(3)
+      game.roll(7) # spare
+      game.roll(4)
+      15.times { game.roll(0) }
+      expect(game.score).to eq(31)
+    end
   end
 end
