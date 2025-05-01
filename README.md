@@ -47,3 +47,13 @@ strikes in a row.
   pins knocked down in a single roll).
 - The program should be able to handle edge cases, such as a game with all
   strikes or all spares.
+
+## Verification & Testing
+
+Unit tests should be written to verify the correctness of the implementation.
+A basic harness has already been provided using RSpec. To run the tests, use
+the following command:
+
+```bash
+bundle exec rspec
+```
