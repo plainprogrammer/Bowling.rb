@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+require 'bowling_game'
+
+game = BowlingGame.new
+
+(1..10).each do |frame|
+  puts "\nFrame #{frame}"  
+  # Roll 1
+  roll1 = nil
+  loop do
+    print "Roll 1: "
+    input = gets.chomp
+    begin
+      pins = Integer(input)
+      raise ArgumentError, "Invalid pin count" if pins < 0 || pins > 10
+      game.roll(pins)
+      roll1 = pins
+      break
+    rescue ArgumentError => e
+      puts "Invalid input: #{e.message}"
+    end
+  end
+
+  # Roll 2 unless strike in frames 1-9
+  roll2 = 0
+  if frame < 10 && roll1 == 10
+    puts "Strike!"
+  else
+    loop do
+      print "Roll 2: "
+      input = gets.chomp
+      begin
+        pins = Integer(input)
+        raise ArgumentError, "Invalid pin count" if pins < 0 || pins > 10
+        if frame < 10 && (roll1 + pins) > 10
+          raise ArgumentError, "Pin count exceeds pins on the lane"
+        end
+        game.roll(pins)
+        roll2 = pins
+        break
+      rescue ArgumentError => e
+        puts "Invalid input: #{e.message}"
+      end
+    end
+    puts "Spare!" if frame < 10 && (roll1 + roll2 == 10)
+  end
+
+  # Bonus roll in 10th frame
+  if frame == 10 && (roll1 == 10 || roll1 + roll2 == 10)
+    loop do
+      print "Roll 3: "
+      input = gets.chomp
+      begin
+        pins = Integer(input)
+        raise ArgumentError, "Invalid pin count" if pins < 0 || pins > 10
+        game.roll(pins)
+        break
+      rescue ArgumentError => e
+        puts "Invalid input: #{e.message}"
+      end
+    end
+  end
+
+  puts "Score after frame #{frame}: #{game.score}"
+end
+
+puts "\nFinal Score: #{game.score}"
