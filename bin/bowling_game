@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/bowling_game'
+
+game = BowlingGame.new
+
+puts "Welcome to the Bowling Score Calculator!"
+
+frame = 1
+while frame <= 10
+  puts "\nFrame #{frame}:"
+  begin
+    print "Enter pins knocked down for roll 1: "
+    roll1 = gets.chomp.to_i
+    game.roll(roll1)
+
+    if roll1 < 10 || frame == 10
+      print "Enter pins knocked down for roll 2: "
+      roll2 = gets.chomp.to_i
+      game.roll(roll2)
+
+      if frame == 10 && (roll1 + roll2 >= 10)
+        print "Enter pins knocked down for roll 3: "
+        roll3 = gets.chomp.to_i
+        game.roll(roll3)
+      end
+    end
+
+    puts "Running score: #{game.score}"
+    frame += 1
+  rescue StandardError => e
+    puts "Error: #{e.message}. Please try again."
+  end
+end
+
+puts "\nFinal score: #{game.score}"
+puts "Thank you for playing!"
