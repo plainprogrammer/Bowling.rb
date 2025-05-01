@@ -1,5 +1,13 @@
 class BowlingGame
   def initialize
-    # Initialize the game state
+    @rolls = []
+  end
+  
+  def roll(pins)
+    @rolls << pins
+  end
+  
+  def score
+    @rolls.sum
   end
 end
