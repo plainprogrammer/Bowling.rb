@@ -123,5 +123,22 @@ RSpec.describe BowlingGame do
         expect(game.score).to eq(48) # 18 for first 9 frames + 30 for the tenth
       end
     end
+    
+    context 'input validation' do
+      it 'raises an error for negative pins' do
+        game = BowlingGame.new
+        expect { game.roll(-1) }.to raise_error(BowlingGame::InvalidPinsError)
+      end
+      
+      it 'raises an error for pins greater than 10' do
+        game = BowlingGame.new
+        expect { game.roll(11) }.to raise_error(BowlingGame::InvalidPinsError)
+      end
+      
+      it 'raises an error for non-integer pins' do
+        game = BowlingGame.new
+        expect { game.roll(5.5) }.to raise_error(BowlingGame::InvalidPinsError)
+      end
+    end
   end
 end

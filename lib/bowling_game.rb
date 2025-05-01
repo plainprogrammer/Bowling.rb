@@ -1,9 +1,12 @@
 class BowlingGame
+  class InvalidPinsError < StandardError; end
+  
   def initialize
     @rolls = []
   end
   
   def roll(pins)
+    validate_pins(pins)
     @rolls << pins
   end
   
@@ -12,6 +15,13 @@ class BowlingGame
   end
   
   private
+  
+  def validate_pins(pins)
+    # Pins should be a number between 0 and 10
+    if !pins.is_a?(Integer) || pins < 0 || pins > 10
+      raise InvalidPinsError, "Invalid pins value: #{pins}. Must be an integer between 0 and 10."
+    end
+  end
   
   def score_for_frames
     total_score = 0
