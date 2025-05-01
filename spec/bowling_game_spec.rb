@@ -46,5 +46,23 @@ RSpec.describe BowlingGame do
       15.times { game.roll(0) }
       expect(game.score).to eq(31)
     end
+
+    it 'correctly scores a strike followed by 3 and 4' do
+      game.roll(10) # strike
+      game.roll(3)
+      game.roll(4)
+      16.times { game.roll(0) }
+      expect(game.score).to eq(24)
+    end
+
+    it 'correctly scores multiple strikes' do
+      game.roll(10) # strike
+      game.roll(10) # strike
+      game.roll(10) # strike
+      game.roll(5)
+      game.roll(3)
+      12.times { game.roll(0) }
+      expect(game.score).to eq(81)
+    end
   end
 end
