@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative '../lib/bowling'
+
+puts "Welcome to the Bowling Score Calculator!"
+puts "--------------------------------------"
+puts "This program will calculate your bowling score."
+puts "Enter the number of pins knocked down for each roll."
+
+game = Bowling.new
+
+until game.game_complete?
+  frame_num = game.current_frame_number
+  
+  # First roll prompt
+  loop do
+    print "Frame #{frame_num}, Roll 1: "
+    begin 
+      pins = gets.chomp.to_i
+      game.roll(pins)
+      break
+    rescue StandardError => e
+      puts "Error: #{e.message}"
+    end
+  end
+  
+  if game.game_complete?
+    break
+  end
+  
+  # Show frame scores so far
+  frame_scores = game.frame_scores
+  puts "\nCurrent scores: "
+  frame_scores.each_with_index do |score, index|
+    puts "Frame #{index + 1}: #{score.nil? ? 'incomplete' : score}" if score || index < frame_scores.size - 1
+  end
+  puts "\n"
+  
+  # Only proceed to second roll if first roll wasn't a strike or we're in the 10th frame
+  if !game.game_complete? && (game.current_frame_number == frame_num)
+    loop do
+      print "Frame #{frame_num}, Roll 2: "
+      begin
+        pins = gets.chomp.to_i
+        game.roll(pins)
+        break
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+      end
+    end
+    
+    # Show frame scores so far
+    frame_scores = game.frame_scores
+    puts "\nCurrent scores: "
+    frame_scores.each_with_index do |score, index|
+      puts "Frame #{index + 1}: #{score.nil? ? 'incomplete' : score}" if score || index < frame_scores.size - 1
+    end
+    puts "\n"
+  end
+  
+  # Special handling for 10th frame potential third roll
+  if !game.game_complete? && (game.current_frame_number == 10)
+    loop do
+      print "Frame 10, Roll 3: "
+      begin
+        pins = gets.chomp.to_i
+        game.roll(pins)
+        break
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+      end
+    end
+  end
+end
+
+# Final score
+final_scores = game.frame_scores
+puts "\n===== FINAL SCORES ====="
+final_scores.each_with_index do |score, index|
+  puts "Frame #{index + 1}: #{score}"
+end
+puts "\nTotal Score: #{game.score}"
+puts "Game complete! Thanks for playing!"
